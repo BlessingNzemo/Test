@@ -417,6 +417,97 @@ Voici un exemple de vue pour afficher la liste des tâches (resources/views/task
 Conclusion
 Avec ces étapes détaillées, vous pouvez générer des opérations CRUD complètes pour n’importe quelle table dans votre application Laravel en utilisant le package ibex/crud-generator. Cela vous permet de gagner du temps et de vous concentrer sur d’autres aspects de votre application.
 
+Pour générer de la documentation pour une API en utilisant Swagger dans une application Laravel, vous pouvez suivre ces étapes. Swagger utilise l’OpenAPI Specification pour créer une documentation interactive et facile à utiliser pour vos API.
+
+Étapes pour Générer de la Documentation API avec Swagger
+1. Installer Swagger dans votre Projet Laravel
+Vous pouvez utiliser le package swagger-lume pour intégrer Swagger dans une application Laravel. Commencez par installer le package via Composer :
+
+composer require "darkaonline/swagger-lume"
+
+2. Publier les Fichiers de Configuration
+Après l’installation, publiez les fichiers de configuration et les assets nécessaires :
+
+php artisan swagger-lume:publish
+
+3. Configurer Swagger
+Modifiez le fichier de configuration config/swagger-lume.php selon vos besoins. Vous pouvez définir des informations sur votre API, comme le titre, la description, et la version.
+
+4. Ajouter des Annotations à vos Contrôleurs
+Swagger utilise des annotations pour générer la documentation. Ajoutez des annotations à vos contrôleurs et modèles pour décrire les endpoints, les paramètres, et les réponses. Voici un exemple pour un contrôleur de tâches :
+
+PHP
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\Task;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+/**
+ * @OA\Info(title="API de Gestion des Tâches", version="1.0")
+ */
+class TaskController extends Controller
+{
+    /**
+     * @OA\Get(
+     *     path="/api/tasks",
+     *     summary="Obtenir la liste des tâches",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Liste des tâches"
+     *     )
+     * )
+     */
+    public function index()
+    {
+        $tasks = Task::all();
+        return response()->json(['tasks' => $tasks]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/tasks",
+     *     summary="Créer une nouvelle tâche",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string"),
+     *             @OA\Property(property="description", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Tâche créée"
+     *     )
+     * )
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        Task::create($request->all());
+
+        return response()->json(['success' => 'Tâche créée avec succès'], 201);
+    }
+}
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+5. Générer la Documentation
+Pour générer la documentation, exécutez la commande suivante :
+
+php artisan swagger-lume:generate
+
+6. Accéder à la Documentation
+Après avoir généré la documentation, vous pouvez y accéder via l’URL suivante dans votre navigateur :
+
+http://votre-domaine.com/api/documentation
+
+Conclusion
+En suivant ces étapes, vous pouvez facilement générer une documentation interactive pour votre API Laravel en utilisant Swagger. Cela permet aux développeurs de comprendre et d’utiliser votre API plus efficacement.
+
 
 https://www.youtube.com/watch?v=UAqlmHyYVBg
 
