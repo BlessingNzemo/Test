@@ -628,6 +628,139 @@ http://localhost:8000/factorial
 
 Cela affichera le formulaire où vous pouvez saisir un nombre et voir son factoriel.
 
+Pour créer des API protégées avec Laravel, vous pouvez utiliser des packages comme Laravel Sanctum ou Laravel Passport pour gérer l’authentification et la sécurité. Voici un guide détaillé pour mettre en place une API sécurisée avec Laravel Sanctum.
+
+Étapes pour Créer une API Sécurisée avec Laravel Sanctum
+1. Installer Laravel Sanctum
+Commencez par installer Laravel Sanctum via Composer :
+
+composer require laravel/sanctum
+
+2. Publier la Configuration
+Publiez les fichiers de configuration de Sanctum :
+
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+
+3. Exécuter les Migrations
+Sanctum nécessite une table de base de données pour stocker les tokens API. Exécutez les migrations pour créer cette table :
+
+php artisan migrate
+
+4. Configurer Sanctum
+Ajoutez Sanctum au middleware API dans le fichier app/Http/Kernel.php :
+
+PHP
+
+'api' => [
+    \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+    'throttle:api',
+    \Illuminate\Routing\Middleware\SubstituteBindings::class,
+],
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+5. Configurer le Modèle Utilisateur
+Assurez-vous que votre modèle User utilise le trait HasApiTokens :
+
+PHP
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+}
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+6. Créer des Routes API Protégées
+Définissez des routes protégées dans le fichier routes/api.php :
+
+PHP
+
+use App\Http\Controllers\Api\TaskController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/tasks', [TaskController::class, 'index']);
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::get('/tasks/{task}', [TaskController::class, 'show']);
+    Route::put('/tasks/{task}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+});
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+7. Authentification des Utilisateurs
+Créez des endpoints pour l’inscription et la connexion des utilisateurs dans un contrôleur AuthController :
+
+PHP
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+
+class AuthController extends Controller
+{
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return response()->json(['message' => 'User registered successfully']);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json(['message' => 'Logged out successfully']);
+    }
+}
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+Ajoutez les routes pour l’inscription, la connexion et la déconnexion dans routes/api.php :
+
+PHP
+
+use App\Http\Controllers\Api\AuthController;
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+Conclusion
+Avec ces étapes, vous avez mis en place une API sécurisée avec Laravel Sanctum. Les utilisateurs peuvent s’inscrire, se connecter, et accéder à des endpoints protégés en utilisant des tokens d’authentification. Cela garantit que seules les requêtes authentifiées peuvent accéder aux ressources protégées de votre API.
+
 https://www.youtube.com/watch?v=UAqlmHyYVBg
 
 php artisan make:model Category -mfcsRr
