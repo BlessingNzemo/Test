@@ -508,6 +508,125 @@ http://votre-domaine.com/api/documentation
 Conclusion
 En suivant ces étapes, vous pouvez facilement générer une documentation interactive pour votre API Laravel en utilisant Swagger. Cela permet aux développeurs de comprendre et d’utiliser votre API plus efficacement.
 
+Créer une Route et un Formulaire
+Ajoutez une route pour afficher le formulaire et une autre pour traiter la soumission du formulaire dans le fichier routes/web.php :
+
+PHP
+
+use App\Http\Controllers\FactorialController;
+
+Route::get('/factorial', [FactorialController::class, 'showForm']);
+Route::post('/factorial', [FactorialController::class, 'calculate']);
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+Étape 2 : Créer le Contrôleur
+Générez un contrôleur en utilisant la commande artisan :
+
+php artisan make:controller FactorialController
+
+Ensuite, modifiez le contrôleur FactorialController pour inclure la logique de calcul du factoriel et pour afficher le formulaire :
+
+PHP
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class FactorialController extends Controller
+{
+    public function showForm()
+    {
+        return view('factorial.form');
+    }
+
+    public function calculate(Request $request)
+    {
+        $request->validate([
+            'number' => 'required|integer|min:0',
+        ]);
+
+        $number = $request->input('number');
+        $factorial = $this->factorial($number);
+
+        return view('factorial.result', ['number' => $number, 'factorial' => $factorial]);
+    }
+
+    private function factorial($number)
+    {
+        if ($number <= 1) {
+            return 1;
+        } else {
+            return $number * $this->factorial($number - 1);
+        }
+    }
+}
+Code généré par l'IA. Examinez et utilisez soigneusement. Plus d'informations sur la FAQ.
+Étape 3 : Créer les Vues
+Créez deux vues : une pour le formulaire (resources/views/factorial/form.blade.php) et une pour afficher le résultat (resources/views/factorial/result.blade.php).
+
+Formulaire (form.blade.php)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul du Factoriel</title>
+</head>
+<body>
+    <h1>Calcul du Factoriel</h1>
+    <form action="/factorial" method="POST">
+        @csrf
+        <label for="number">Entrez un nombre :</label>
+        <input type="number" id="number" name="number" required>
+        <button type="submit">Calculer</button>
+    </form>
+    @if ($errors->any())
+        <div>
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+</body>
+</html>
+
+Résultat (result.blade.php)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat du Factoriel</title>
+</head>
+<body>
+    <h1>Résultat du Factoriel</h1>
+    <p>Le factoriel de {{ $number }} est {{ $factorial }}.</p>
+    <a href="/factorial">Calculer un autre factoriel</a>
+</body>
+</html>
+
+Explication
+Routes :
+La route GET /factorial affiche le formulaire.
+La route POST /factorial traite la soumission du formulaire et affiche le résultat.
+Contrôleur :
+La méthode showForm affiche le formulaire.
+La méthode calculate valide l’entrée, calcule le factoriel et affiche le résultat.
+La méthode privée factorial utilise la récursion pour calculer le factoriel.
+Vues :
+form.blade.php : Affiche un formulaire où l’utilisateur peut saisir un nombre.
+result.blade.php : Affiche le résultat du calcul du factoriel.
+Test
+Pour tester, lancez votre serveur Laravel :
+
+php artisan serve
+
+Ensuite, accédez à l’URL suivante dans votre navigateur :
+
+http://localhost:8000/factorial
+
+Cela affichera le formulaire où vous pouvez saisir un nombre et voir son factoriel.
 
 https://www.youtube.com/watch?v=UAqlmHyYVBg
 
